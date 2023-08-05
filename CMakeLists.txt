@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.21)
 project(LiveVoxEngine LANGUAGES CXX)
 include(FetchContent)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 FetchContent_Declare(EnTT
     GIT_REPOSITORY https://github.com/skypjack/entt.git
     GIT_TAG v3.12.2)
