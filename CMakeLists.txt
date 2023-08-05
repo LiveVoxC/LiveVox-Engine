@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(CMakeSFMLProject LANGUAGES CXX)
+project(LiveVoxEngine LANGUAGES CXX)
 include(FetchContent)
 
 FetchContent_Declare(EnTT
@@ -14,17 +14,18 @@ FetchContent_MakeAvailable(EnTT)
 FetchContent_Declare(SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
     GIT_TAG 2.6.x)
+
 FetchContent_MakeAvailable(SFML)
 
-add_executable(CMakeSFMLProject src/main.cpp)
+add_executable(LiveVoxEngine src/main.cpp)
 
-target_link_libraries(CMakeSFMLProject PRIVATE sfml-graphics EnTT)
+target_link_libraries(LiveVoxEngine PRIVATE sfml-graphics EnTT)
 
-target_compile_features(CMakeSFMLProject PRIVATE cxx_std_17)
+target_compile_features(LiveVoxEngine PRIVATE cxx_std_17)
 
 if (WIN32 AND BUILD_SHARED_LIBS)
-    add_custom_command(TARGET CMakeSFMLProject POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:CMakeSFMLProject> $<TARGET_FILE_DIR:CMakeSFMLProject> COMMAND_EXPAND_LISTS)
+    add_custom_command(TARGET LiveVoxEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:LiveVoxEngine> $<TARGET_FILE_DIR:LiveVoxEngine> COMMAND_EXPAND_LISTS)
 endif()
 
-install(TARGETS CMakeSFMLProject)
+install(TARGETS LiveVoxEngine)
