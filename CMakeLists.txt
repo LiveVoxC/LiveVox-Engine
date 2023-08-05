@@ -19,6 +19,13 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(LiveVoxEngine src/main.cpp)
 
+# Fix MSVC AMD: prevent compiler from halting when warnings occurs
+if(MSVC)
+    target_compile_options(sfml-graphics PRIVATE /w)
+endif()
+
+add_executable(CMakeSFMLProject src/main.cpp)
+
 target_link_libraries(LiveVoxEngine PRIVATE sfml-graphics EnTT)
 
 target_compile_features(LiveVoxEngine PRIVATE cxx_std_17)
