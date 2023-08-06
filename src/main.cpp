@@ -59,7 +59,6 @@ struct CircleShape
 struct Sprite
 {
     const sf::Texture* texture;
-    sf::IntRect textureRect;
 };
 
 class RenderManager
@@ -74,65 +73,73 @@ public:
     void update()
     {
         m_targetWindow->clear();
-
-        // Handle sprite drawables
-        
-        // {
-        //     auto view = m_registry->view<SpriteRenderer, Transform>();
-        //     sf::Vertex vertices[4];
-
-        //     for (auto entity : view)
-        //     {
-        //         auto &sc = view.get<SpriteRenderer>(entity);
-        //         auto &tc = view.get<Transform>(entity);
-
-        //         // Calculate sprite's rectangle
-        //         const auto width = std::abs(sc.textureRect.width);
-        //         const auto height = std::abs(sc.textureRect.height);
-
-        //         vertices[0].position = sf::Vector2f(0, 0); 
-        //         vertices[1].position = sf::Vector2f(0, height);
-        //         vertices[2].position = sf::Vector2f(width, 0);                
-        //         vertices[3].position = sf::Vector2f(width, height);
-
-        //         sf::Transformable transform;
-        //         transform.setPosition(tc.position.x, tc.position.y);
-        //         transform.setScale(tc.scale.x, tc.scale.y);
-        //         transform.setRotation(tc.rotation);
-
-        //         sf::RenderStates states;
-        //         states.texture = sc.texture;
-        //         states.transform = transform.getTransform();
-
-        //         m_targetWindow->draw(vertices, 4, sf::PrimitiveType::TriangleStrip, states);
-        //     }
-        // }
          
-        // Handle rectangle shape drawables
-        {
-            auto view = m_registry->view<RectangleShape, Transform>();
-
-            for (auto entity : view)
-            {
-                auto &rs = view.get<RectangleShape>(entity);
-                auto &tc = view.get<Transform>(entity);
-
-                sf::RectangleShape shape;
-                shape.setSize({ rs.size.x, rs.size.y });
-                shape.setScale({ tc.scale.x, tc.scale.y });
-                shape.setPosition({ tc.position.x, tc.position.y });
-                shape.setFillColor(sf::Color(rs.color.r, rs.color.g, rs.color.b, rs.color.a));
-
-                m_targetWindow->draw(shape);
-            }
-        }
-
-        // Handle all other drawables aside from sprite
+        this->renderCircleShape();
+        this->renderRectangleShape();
+        this->renderSprite();
 
         m_targetWindow->display();
     }
 
 private:
+    void renderRectangleShape()
+    {
+        auto view = m_registry->view<RectangleShape, Transform>();
+
+        for (auto entity : view)
+        {
+            auto &rs = view.get<RectangleShape>(entity);
+            auto &tc = view.get<Transform>(entity);
+
+            sf::RectangleShape shape;
+            shape.setSize({ rs.size.x, rs.size.y });
+            shape.setScale({ tc.scale.x, tc.scale.y });
+            shape.setPosition({ tc.position.x, tc.position.y });
+            shape.setFillColor(sf::Color(rs.color.r, rs.color.g, rs.color.b, rs.color.a));
+
+            m_targetWindow->draw(shape);
+        }
+    }
+
+    void renderCircleShape()
+    {
+        auto view = m_registry->view<CircleShape, Transform>();
+
+        for (auto entity : view)
+        {
+            auto &cc = view.get<CircleShape>(entity);
+            auto &tc = view.get<Transform>(entity);
+
+            sf::CircleShape shape;
+            shape.setRadius(cc.radius);
+            shape.setFillColor(sf::Color(cc.color.r, cc.color.g, cc.color.b, cc.color.a));
+            shape.setPosition({ tc.position.x, tc.position.y });
+            shape.setScale({ tc.scale.x, tc.scale.y });
+            shape.setRotation(tc.rotation);
+
+            m_targetWindow->draw(shape);
+        }
+    }
+
+    void renderSprite()
+    {
+        auto view = m_registry->view<Sprite, Transform>();
+
+        for (auto entity : view)
+        {
+            auto &sc = view.get<Sprite>(entity);
+            auto &tc = view.get<Transform>(entity);
+
+            sf::Sprite sprite;
+            sprite.setTexture(*sc.texture);
+            sprite.setPosition(tc.position.x, tc.position.y);
+            sprite.setScale(tc.scale.x, tc.scale.y);
+            sprite.setRotation(tc.rotation);
+
+            m_targetWindow->draw(sprite);
+        }
+    }
+
     entt::registry* m_registry;
     sf::RenderWindow* m_targetWindow;
 };
@@ -161,28 +168,7 @@ public:
         }
 
         // Sample entity spawning (we'll move this somewhere in the future)
-        
-        auto entity = m_registry.create();
-
-        auto& rc = m_registry.emplace<Transform>(entity);
-        rc.position = { 50.f, 50.f };
-        rc.scale = { 1.f, 1.f };
-        rc.rotation = 0;
-
-        auto& rs = m_registry.emplace<RectangleShape>(entity);
-        rs.size = { 50.f, 50.f };
-        rs.color = { 255, 255, 255, 255 };
-
-        // auto entity = m_registry.create();
-        // auto& transform = m_registry.emplace<Transform>(entity);
-        // auto& spriteRenderer = m_registry.emplace<SpriteRenderer>(entity);
-
-        // transform.position = { 50.f, 50.f };
-
-        // if (!spriteRenderer.texture.loadFromFile(R"(..\assets\sfml-icon-small.png)")) {
-        //     std::cerr << "read failed" << std::endl;
-        //     return;
-        // }
+        this->spawnTestComponents();
 
         auto view = m_registry.view<sf::RenderWindow>();
 
@@ -201,12 +187,62 @@ public:
                 }
 
                 m_renderManager.update();
-
             }
         }
     }
 
 private:
+    void spawnTestComponents()
+    {
+        // Circle Shape Test
+        {
+            auto circle = m_registry.create();
+
+            auto& tc = m_registry.emplace<Transform>(circle);
+            tc.position = { 50.f, 100.f };
+            tc.scale = { 1.f, 1.f };
+            tc.rotation = 0;
+
+            auto& cc = m_registry.emplace<CircleShape>(circle);
+            cc.radius = 25.f;
+            cc.color = { 255, 0, 0, 255 };
+        }
+        
+        // Retangle Shape test
+        {
+            auto rectangle = m_registry.create();
+
+            auto& rc = m_registry.emplace<Transform>(rectangle);
+            rc.position = { 200.f, 50.f };
+            rc.scale = { 1.f, 1.f };
+            rc.rotation = 45;
+
+            auto& rs = m_registry.emplace<RectangleShape>(rectangle);
+            rs.size = { 50.f, 50.f };
+            rs.color = { 0, 255, 0, 255 };
+        }
+
+        // Sprite Shape test
+        {
+            static sf::Texture texture;
+        
+            if (!texture.loadFromFile(R"(..\assets\sfml-icon-small.png)")) {
+                std::cerr << "read failed" << std::endl;
+                return;
+            }
+
+            auto sprite = m_registry.create();
+
+            auto& tc = m_registry.emplace<Transform>(sprite);
+            tc.position = { 100.f, 200.f };
+            tc.scale = { 0.5f, 0.5f };
+            tc.rotation = 0;
+
+            auto& sc = m_registry.emplace<Sprite>(sprite);
+            sc.texture = &texture;
+        }    
+    }
+
     bool m_isInitialized = 0;
 
     entt::registry m_registry;
