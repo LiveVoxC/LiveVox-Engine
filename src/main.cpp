@@ -1,5 +1,3 @@
-#include "SFML/Graphics/RenderStates.hpp"
-#include "SFML/Graphics/Transform.hpp"
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 #include <iostream>
@@ -58,7 +56,7 @@ struct CircleShape
     Color4 color;
 };
 
-struct SpriteRenderer
+struct Sprite
 {
     const sf::Texture* texture;
     sf::IntRect textureRect;
