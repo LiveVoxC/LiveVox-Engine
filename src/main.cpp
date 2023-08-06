@@ -2,26 +2,7 @@
 #include <entt/entt.hpp>
 #include <iostream>
 #include <stdint.h>
-/*
-1st Iteration 
-=============
 
-- [ ] Renderer System
-- [ ] Audio System
-- [ ] Physics System
-- [ ] Input System
-
-Success Indicator:
-
-[ ] Graphics & Input
-Display a simple white rectangle shape, you're able to make it jump using by
-pressing space.
-
-[ ] Audio & Physics
-The rectangle would play a sound when it starts jumping and when
-it struck the floor.
-
-*/
 
 struct Vector2f
 {
@@ -65,7 +46,7 @@ class RenderManager
 {
 public:
     void startUp(entt::registry* registry, sf::RenderWindow* window)
-    {
+    {  
         m_registry = registry;
         m_targetWindow = window;
     }
