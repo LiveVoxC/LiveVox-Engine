@@ -19,14 +19,23 @@ FetchContent_Declare(SFML
 
 FetchContent_MakeAvailable(SFML) 
 
-add_executable(LiveVoxEngine src/main.cpp)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cpp")
+
+add_executable(LiveVoxEngine ${SOURCES})
 
 # Fix MSVC AMD: prevent compiler from halting when warnings occurs
 if(MSVC)
     target_compile_options(sfml-graphics PRIVATE /w)
 endif()
 
-target_link_libraries(LiveVoxEngine PRIVATE sfml-graphics EnTT)
+include_directories(LiveVoxEngine PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+)
+
+target_link_libraries(LiveVoxEngine PRIVATE 
+    sfml-graphics 
+    EnTT
+)
 
 target_compile_features(LiveVoxEngine PRIVATE cxx_std_17)
 
