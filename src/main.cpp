@@ -1,9 +1,31 @@
-#include "SFML/Graphics/CircleShape.hpp"
-#include "entt/entity/fwd.hpp"
+#include "SFML/Graphics/RenderStates.hpp"
+#include "SFML/Graphics/Transform.hpp"
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
+#include <iostream>
+#include <stdint.h>
+/*
+1st Iteration 
+=============
 
-struct Vector
+- [ ] Renderer System
+- [ ] Audio System
+- [ ] Physics System
+- [ ] Input System
+
+Success Indicator:
+
+[ ] Graphics & Input
+Display a simple white rectangle shape, you're able to make it jump using by
+pressing space.
+
+[ ] Audio & Physics
+The rectangle would play a sound when it starts jumping and when
+it struck the floor.
+
+*/
+
+struct Vector2f
 {
     float x;
     float y;
@@ -11,89 +33,201 @@ struct Vector
 
 struct Transform
 {
-    Vector position;
-    Vector scale;
-    Vector rotation;
+    Vector2f position;
+    Vector2f scale;
+    uint32_t rotation;
 };
 
-class CircleShapeSystem
+struct Color4
+{
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+};
+
+struct RectangleShape
+{
+    Vector2f size;
+    Color4 color;
+};
+
+struct CircleShape
+{
+    float radius;
+    Color4 color;
+};
+
+struct SpriteRenderer
+{
+    const sf::Texture* texture;
+    sf::IntRect textureRect;
+};
+
+class RenderManager
 {
 public:
-    static void init(entt::registry *registry, sf::RenderWindow *window)
+    void startUp(entt::registry* registry, sf::RenderWindow* window)
     {
         m_registry = registry;
-        m_window = window;
+        m_targetWindow = window;
     }
 
-    static void update()
+    void update()
     {
-    }
+        m_targetWindow->clear();
 
-    static void display()
-    {
-        auto view = m_registry->view<const sf::CircleShape>();
+        // Handle sprite drawables
+        
+        // {
+        //     auto view = m_registry->view<SpriteRenderer, Transform>();
+        //     sf::Vertex vertices[4];
 
-        for (auto entity : view)
+        //     for (auto entity : view)
+        //     {
+        //         auto &sc = view.get<SpriteRenderer>(entity);
+        //         auto &tc = view.get<Transform>(entity);
+
+        //         // Calculate sprite's rectangle
+        //         const auto width = std::abs(sc.textureRect.width);
+        //         const auto height = std::abs(sc.textureRect.height);
+
+        //         vertices[0].position = sf::Vector2f(0, 0); 
+        //         vertices[1].position = sf::Vector2f(0, height);
+        //         vertices[2].position = sf::Vector2f(width, 0);                
+        //         vertices[3].position = sf::Vector2f(width, height);
+
+        //         sf::Transformable transform;
+        //         transform.setPosition(tc.position.x, tc.position.y);
+        //         transform.setScale(tc.scale.x, tc.scale.y);
+        //         transform.setRotation(tc.rotation);
+
+        //         sf::RenderStates states;
+        //         states.texture = sc.texture;
+        //         states.transform = transform.getTransform();
+
+        //         m_targetWindow->draw(vertices, 4, sf::PrimitiveType::TriangleStrip, states);
+        //     }
+        // }
+         
+        // Handle rectangle shape drawables
         {
-            auto &circleShape = view.get<const sf::CircleShape>(entity);
+            auto view = m_registry->view<RectangleShape, Transform>();
 
-            m_window->draw(circleShape);
+            for (auto entity : view)
+            {
+                auto &rs = view.get<RectangleShape>(entity);
+                auto &tc = view.get<Transform>(entity);
+
+                sf::RectangleShape shape;
+                shape.setSize({ rs.size.x, rs.size.y });
+                shape.setScale({ tc.scale.x, tc.scale.y });
+                shape.setPosition({ tc.position.x, tc.position.y });
+                shape.setFillColor(sf::Color(rs.color.r, rs.color.g, rs.color.b, rs.color.a));
+
+                m_targetWindow->draw(shape);
+            }
         }
 
-        // view.each([] (sf::CircleShape& spriteRenderer) {
-        //     m_window->draw(spriteRenderer);
-        // });
+        // Handle all other drawables aside from sprite
+
+        m_targetWindow->display();
     }
 
 private:
-    static entt::registry *m_registry;
-    static sf::RenderWindow *m_window;
+    entt::registry* m_registry;
+    sf::RenderWindow* m_targetWindow;
 };
 
-entt::registry *CircleShapeSystem::m_registry = nullptr;
-sf::RenderWindow *CircleShapeSystem::m_window = nullptr;
-
-class SystemManager
+class Application
 {
 public:
-    SystemManager() : m_window(sf::VideoMode(800, 600), "LiveVox Engine")
+    Application()
     {
         // default
     }
 
+    void init()
+    {
+        sf::RenderWindow* window = this->createPrimaryWindow();
+
+        m_renderManager.startUp(&m_registry, window);
+        
+        m_isInitialized = true;
+    }
+
     void run()
     {
-        CircleShapeSystem::init(&m_registry, &m_window);
+        if (!m_isInitialized) {
+            throw std::runtime_error("Application not initialized!");         
+        }
 
+        // Sample entity spawning (we'll move this somewhere in the future)
+        
         auto entity = m_registry.create();
-        m_registry.emplace<sf::CircleShape>(entity, sf::CircleShape(5.0f));
 
-        while (m_window.isOpen())
+        auto& rc = m_registry.emplace<Transform>(entity);
+        rc.position = { 50.f, 50.f };
+        rc.scale = { 1.f, 1.f };
+        rc.rotation = 0;
+
+        auto& rs = m_registry.emplace<RectangleShape>(entity);
+        rs.size = { 50.f, 50.f };
+        rs.color = { 255, 255, 255, 255 };
+
+        // auto entity = m_registry.create();
+        // auto& transform = m_registry.emplace<Transform>(entity);
+        // auto& spriteRenderer = m_registry.emplace<SpriteRenderer>(entity);
+
+        // transform.position = { 50.f, 50.f };
+
+        // if (!spriteRenderer.texture.loadFromFile(R"(..\assets\sfml-icon-small.png)")) {
+        //     std::cerr << "read failed" << std::endl;
+        //     return;
+        // }
+
+        auto view = m_registry.view<sf::RenderWindow>();
+
+        for (auto entity : view)
         {
-            for (sf::Event event; m_window.pollEvent(event);)
+            auto &window = view.get<const sf::RenderWindow>(entity);            
+            
+            while (window.isOpen())
             {
-                if (event.type == sf::Event::Closed)
+                for (sf::Event event; window.pollEvent(event);)
                 {
-                    m_window.close();
+                    if (event.type == sf::Event::Closed)
+                    {
+                        window.close();
+                    }
                 }
+
+                m_renderManager.update();
+
             }
-
-            // Update systems
-            CircleShapeSystem::update();
-
-            m_window.clear();
-            CircleShapeSystem::display();
-            m_window.display();
         }
     }
 
 private:
-    sf::RenderWindow m_window;
+    bool m_isInitialized = 0;
+
     entt::registry m_registry;
+
+    RenderManager m_renderManager;
+
+    sf::RenderWindow* createPrimaryWindow()
+    {
+        auto entity = m_registry.create();   
+
+        auto& window = m_registry.emplace<sf::RenderWindow>(entity, sf::VideoMode(800, 600), "LiveVox Engine");
+
+        return &window;
+    }
 };
 
 int main()
 {
-    SystemManager system;
-    system.run();
+    Application app;
+    app.init();
+    app.run();
 }
