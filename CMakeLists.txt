@@ -17,7 +17,7 @@ FetchContent_Declare(SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
     GIT_TAG 2.6.x)
 
-FetchContent_MakeAvailable(SFML)
+FetchContent_MakeAvailable(SFML) 
 
 add_executable(LiveVoxEngine src/main.cpp)
 
@@ -25,8 +25,6 @@ add_executable(LiveVoxEngine src/main.cpp)
 if(MSVC)
     target_compile_options(sfml-graphics PRIVATE /w)
 endif()
-
-add_executable(CMakeSFMLProject src/main.cpp)
 
 target_link_libraries(LiveVoxEngine PRIVATE sfml-graphics EnTT)
 
