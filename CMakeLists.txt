@@ -39,6 +39,10 @@ target_link_libraries(LiveVoxEngine PRIVATE
 
 target_compile_features(LiveVoxEngine PRIVATE cxx_std_17)
 
+# Fix Clangd: force cmake to append -std=c++17 into compile_commands.json
+set_target_properties(LiveVoxEngine PROPERTIES CXX_STANDARD 17)
+
+
 if (WIN32 AND BUILD_SHARED_LIBS)
     add_custom_command(TARGET LiveVoxEngine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:LiveVoxEngine> $<TARGET_FILE_DIR:LiveVoxEngine> COMMAND_EXPAND_LISTS)
