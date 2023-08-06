@@ -28,7 +28,7 @@ if(MSVC)
     target_compile_options(sfml-graphics PRIVATE /w)
 endif()
 
-include_directories(LiveVoxEngine PRIVATE
+target_include_directories(LiveVoxEngine PRIVATE
     ${PROJECT_SOURCE_DIR}/src
 )
 
