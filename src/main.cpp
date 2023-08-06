@@ -9,7 +9,7 @@ class Application
 public:
     Application()
     {
-        // default
+        // 
     }
 
     void init()
